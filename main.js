@@ -1,6 +1,5 @@
 /*const fs = require('fs');
 const path = require('path');
-const fetch = require('node-fetch');
 const { spawn } = require('child_process');
 const { Canvas, Image } = require('canvas');
 const lottie = require('lottie-nodejs');
@@ -69,41 +68,49 @@ main()
 */
 
 const fs = require("fs");
-//const fetch = require("node-fetch");
 
-function optimizeLottie(lottieObj,precision = 2) {
-  function roundNumber(num) {
-    if (typeof num === 'number') {
-      return +num.toFixed(precision);
+function optimizeLottie(lottieObj, decimalDigits = 2) {
+  const keysToRemove = ["nm", "id", "mn", "cl"];
+  function roundNumberCustom(num, digits) {
+    if (typeof num !== "number") return num;
+    const str = num.toString();
+    if (!str.includes('.')) return num;
+    const match = str.match(/^-?0*\.(0*)(\d+)/);
+    if (match) {
+      const leadingZeros = match[1].length;
+      const significant = match[2].substring(0, digits);
+      return parseFloat(`0.${"0".repeat(leadingZeros)}${significant}`);
+    } else {
+      const intPart = str.split('.')[0];
+      const decPart = str.split('.')[1].substring(0, digits - 1);
+      return parseFloat(`${intPart}.${decPart}`);
     }
-    return num;
   }
-  function clean(obj) {
+  function deepClean(obj) {
     if (Array.isArray(obj)) {
       return obj
-        .filter(item => !(item && item.hd === true))
-        .map(clean);
+        .map(deepClean)
+        .filter(item => !(item && item.hd === true));
     } else if (typeof obj === 'object' && obj !== null) {
       const newObj = {};
       for (const key in obj) {
-        if (['nm', 'id', 'mn', 'cl'].includes(key)) continue;
-        if (key === 'ddd') continue;
-        if (key === 'hd' && obj[key] === true) {
-          return null;
-        }
-        const cleanedValue = clean(obj[key]);
-        if (cleanedValue !== null) {
-          newObj[key] = cleanedValue;
+        if (keysToRemove.includes(key)) continue;
+        if (key === "ddd" && obj[key] === 1) continue;
+        if (key === "hd" && obj[key] === true) continue;
+
+        const value = obj[key];
+        if (typeof value === "number") {
+          newObj[key] = roundNumberCustom(value, decimalDigits);
+        } else {
+          newObj[key] = deepClean(value);
         }
       }
       return newObj;
-    } else if (typeof obj === 'number') {
-      return roundNumber(obj);
     } else {
       return obj;
     }
   }
-  return clean(lottieObj);
+  return deepClean(lottieObj);
 }
 
 (async()=>{
