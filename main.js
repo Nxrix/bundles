@@ -10,17 +10,14 @@ lottie.setCanvas({ Canvas, Image });
 const width = 512, height = 512;
 const canvas = new Canvas(width, height);
 
-// Ensure /data exists
-const outputDir = './data';
-fs.mkdirSync(outputDir, { recursive: true });
+fs.mkdirSync("./data", { recursive: true });
 
-// Main async function
 (async () => {
-  // Fetch Lottie JSON
   const url = 'https://gifts.coffin.meme/bundles/525878182.json';
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch Lottie JSON: ${res.statusText}`);
   const animationData = await res.json();
+  fs.writeFileSync("./data/lottie.json",animationData)
 
   // Load Lottie
   const anim = lottie.loadAnimation({
