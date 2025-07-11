@@ -71,40 +71,41 @@ main()
 const fs = require("fs");
 //const fetch = require("node-fetch");
 
-function optimizeLottie(obj, precision = 2) {
-  const keysToRemove = new Set(['nm', 'id', 'mn', 'cl', 'ddd']);
-  function roundSmart(num) {
-    if (typeof num !== 'number') return num;
-    if (Math.abs(num) < 1e-8) return 0;
-    const fixed = Number(num.toPrecision(15)); 
-    const digits = Math.floor(Math.log10(Math.abs(fixed)));
-    const scale = Math.pow(10, digits - precision + 1);
-    return Math.round(fixed / scale) * scale;
+function optimizeLottie(lottieObj,precision = 2) {
+  function roundNumber(num) {
+    if (typeof num === 'number') {
+      return +num.toFixed(precision);
+    }
+    return num;
   }
-  function deepClean(value) {
-    if (Array.isArray(value)) {
-      return value
-        .map(deepClean)
-        .filter(v => v !== undefined);
-    } else if (value && typeof value === 'object') {
+  function clean(obj) {
+    if (Array.isArray(obj)) {
+      return obj
+        .filter(item => !(item && item.hd === true))
+        .map(clean);
+    } else if (typeof obj === 'object' && obj !== null) {
       const newObj = {};
-      for (const key in value) {
-        if (keysToRemove.has(key)) continue;
-        if (key === 'hd' && value[key] === true) return undefined;
-        const cleaned = deepClean(value[key]);
-        if (cleaned !== undefined) {
-          newObj[key] = cleaned;
+      for (const key in obj) {
+        if (['nm', 'id', 'mn', 'cl'].includes(key)) continue;
+        if (key === 'ddd') continue;
+        if (key === 'hd' && obj[key] === true) {
+          return null;
+        }
+        const cleanedValue = clean(obj[key]);
+        if (cleanedValue !== null) {
+          newObj[key] = cleanedValue;
         }
       }
       return newObj;
-    } else if (typeof value === 'number') {
-      return roundSmart(value);
+    } else if (typeof obj === 'number') {
+      return roundNumber(obj);
+    } else {
+      return obj;
     }
-    return value;
   }
-
-  return deepClean(obj);
+  return clean(lottieObj);
 }
+
 (async()=>{
   const l = await(await fetch("https://gifts.coffin.meme/bundles/525878182.json")).json();
   fs.writeFileSync("./data/lottie0.json",JSON.stringify(l),"utf8");
