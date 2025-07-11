@@ -101,6 +101,7 @@ function optimizeLottie(obj,precision = 2) {
   return deepClean(obj);
 }
 (async()=>{
-  const l = await(await fetch("")).json();
-  fs.writeFileSync("./data/lottie.json",JSON.stringify(optimizeLottie(l)),"utf8");
+  const l = await(await fetch("https://gifts.coffin.meme/bundles/525878182.json")).json();
+  fs.writeFileSync("./data/lottie0.json",JSON.stringify(l),"utf8");
+  fs.writeFileSync("./data/lottie1.json",JSON.stringify(optimizeLottie(l)),"utf8");
 })();
