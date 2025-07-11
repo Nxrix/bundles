@@ -48,6 +48,7 @@ fs.mkdirSync(outputDir, { recursive: true });
       console.log(`FFmpeg exited with code ${code}`);
     });
     for (let i = 0; i < totalFrames; i++) {
+      if (i==0) fs.writeFileSync(path.join(outputDir,'frame0.png'), buffer);
       anim.goToAndStop(i,true);
       const buffer = canvas.toBuffer('image/png');
       ffmpeg.stdin.write(buffer);
