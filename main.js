@@ -52,7 +52,7 @@ fs.mkdirSync("./data", { recursive: true });
   ffmpeg.stdin.end();
 })();
 */
-const converter = require('lottie-converter');
+/*const converter = require('lottie-converter');
 const fs = require('fs');
 
 async function main() {
@@ -66,3 +66,41 @@ async function main() {
   fs.writeFileSync('converted.webm',converted,'base64')
 }
 main()
+*/
+
+function optimizeLottie(obj,precision = 2) {
+  const keysToRemove = new Set(['nm','id','mn','cl','ddd']);
+  function roundNumber(num) {
+    if (typeof num !== 'number') return num;
+    if (num === 0) return 0;
+    const digits = Math.floor(Math.log10(Math.abs(num)));
+    const scale = Math.pow(10, digits - precision + 1);
+    return Math.round(num / scale) * scale;
+  }
+  function deepClean(value) {
+    if (Array.isArray(value)) {
+      return value
+        .map(deepClean)
+        .filter(v => v !== undefined);
+    } else if (value && typeof value === 'object') {
+      const newObj = {};
+      for (const key in value) {
+        if (keysToRemove.has(key)) continue;
+        if (key === 'hd' && value[key] === true) return undefined;
+        const cleaned = deepClean(value[key]);
+        if (cleaned !== undefined) {
+          newObj[key] = cleaned;
+        }
+      }
+      return newObj;
+    } else if (typeof value === 'number') {
+      return roundNumber(value);
+    }
+    return value;
+  }
+  return deepClean(obj);
+}
+(async()=>{
+  const l = await(await fetch("")).json();
+  fs.writeFileSync("./data/lottie.json",JSON.stringify(optimizeLottie(l)),"utf8");
+})();
