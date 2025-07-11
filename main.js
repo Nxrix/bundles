@@ -68,6 +68,9 @@ async function main() {
 main()
 */
 
+const fs = require("fs");
+//const fetch = require("node-fetch");
+
 function optimizeLottie(obj,precision = 2) {
   const keysToRemove = new Set(['nm','id','mn','cl','ddd']);
   function roundNumber(num) {
