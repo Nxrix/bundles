@@ -13,7 +13,7 @@ const canvas = new Canvas(width, height);
 fs.mkdirSync("./data", { recursive: true });
 
 (async () => {
-  const url = 'https://gifts.coffin.meme/bundles/525878182.json';
+  const url = "https://gifts.coffin.meme/bundles/525878182.json";
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch Lottie JSON: ${res.statusText}`);
   const animationData = await res.json();
@@ -29,14 +29,14 @@ fs.mkdirSync("./data", { recursive: true });
   (async () => {
     const totalFrames = anim.totalFrames;
     const fps = 30;
-    const ffmpeg = spawn('ffmpeg', [
+    const ffmpeg = spawn("ffmpeg", [
       '-y',
       '-f', 'image2pipe',
       '-framerate', `${fps}`,
       '-i', '-',
       '-c:v', 'libvpx-vp9',
       '-pix_fmt', 'yuva420p',
-      path.join(outputDir, 'output.webm'),
+      './data/output.webm',
     ]);
     ffmpeg.stderr.on('data', (data) => {
       console.error(`ffmpeg: ${data}`);
@@ -45,7 +45,7 @@ fs.mkdirSync("./data", { recursive: true });
       console.log(`FFmpeg exited with code ${code}`);
     });
     for (let i = 0; i < totalFrames; i++) {
-      if (i==0) fs.writeFileSync(path.join(outputDir,'frame0.png'), buffer);
+      if (i==0) fs.writeFileSync('./data/frame0.png', buffer);
       anim.goToAndStop(i,true);
       const buffer = canvas.toBuffer('image/png');
       ffmpeg.stdin.write(buffer);
