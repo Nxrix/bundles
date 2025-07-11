@@ -11,7 +11,7 @@ const width = 512, height = 512;
 const canvas = new Canvas(width, height);
 
 // Ensure /data exists
-const outputDir = path.join(__dirname, 'data');
+const outputDir = './data';
 fs.mkdirSync(outputDir, { recursive: true });
 
 // Main async function
