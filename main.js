@@ -52,18 +52,17 @@ fs.mkdirSync("./data", { recursive: true });
   ffmpeg.stdin.end();
 })();
 */
-const converter = require('lottie-converter')
-const fs = require('fs')
+const converter = require('lottie-converter');
+const fs = require('fs');
 
 async function main() {
-    let converted = await converter({
-        file: await fs.readFileSync('lottie.json'),//file buffer
-        filename: 'hi.json',//optional
-        format: 'gif',// format to convert to, either 'gif' , 'mp4' , 'webp' , 'webm' or 'lottie'
-        width: 100,//optional, defaults to 1000
-        height: 100, //optinal, defaults to 1000
-    })
-    console.log(converted)//base64
-    fs.writeFileSync('converted.gif', converted ,'base64')
+  let converted = await converter({
+    file: Buffer.from(await(await fetch("https://gifts.coffin.meme/bundles/525878182.json")).arrayBuffer())//await fs.readFileSync('lottie.json'),
+    //filename: 'hi.json',//optional
+    format: "webm",
+    width: 256,
+    height: 256
+  })
+  fs.writeFileSync('converted.webm',converted,'base64')
 }
 main()
