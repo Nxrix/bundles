@@ -1,4 +1,4 @@
-const fs = require('fs');
+/*const fs = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');
 const { spawn } = require('child_process');
@@ -51,3 +51,19 @@ fs.mkdirSync("./data", { recursive: true });
   }
   ffmpeg.stdin.end();
 })();
+*/
+const converter = require('lottie-converter')
+const fs = require('fs')
+
+async function main() {
+    let converted = await converter({
+        file: await fs.readFileSync('lottie.json'),//file buffer
+        filename: 'hi.json',//optional
+        format: 'gif',// format to convert to, either 'gif' , 'mp4' , 'webp' , 'webm' or 'lottie'
+        width: 100,//optional, defaults to 1000
+        height: 100, //optinal, defaults to 1000
+    })
+    console.log(converted)//base64
+    fs.writeFileSync('converted.gif', converted ,'base64')
+}
+main()
