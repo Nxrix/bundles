@@ -25,32 +25,30 @@ fs.mkdirSync("./data", { recursive: true });
     animationData,
   });
 
-  (async () => {
-    const totalFrames = anim.totalFrames;
-    console.log(totalFrames);
-    const fps = 30;
-    const ffmpeg = spawn("ffmpeg",[
-      '-y',
-      '-f', 'image2pipe',
-      '-framerate', `${fps}`,
-      '-i', '-',
-      '-c:v', 'libvpx-vp9',
-      '-pix_fmt', 'yuva420p',
-      './data/output.webm',
-    ]);
-    ffmpeg.stderr.on('data', (data) => {
-      console.error(`ffmpeg: ${data}`);
-    });
-    ffmpeg.on('close', (code) => {
-      console.log(`FFmpeg exited with code ${code}`);
-    });
-    for (let i = 0; i < totalFrames; i++) {
-      anim.render();
-      //anim.goToAndStop(i,true);
-      const buffer = canvas.toBuffer('image/png');
-      ffmpeg.stdin.write(buffer);
-      if (i==0) fs.writeFileSync('./data/frame0.png', buffer);
-    }
-    ffmpeg.stdin.end();
+  const totalFrames = anim.totalFrames;
+  console.log(totalFrames);
+  const fps = 30;
+  const ffmpeg = spawn("ffmpeg",[
+    '-y',
+    '-f', 'image2pipe',
+    '-framerate', `${fps}`,
+    '-i', '-',
+    '-c:v', 'libvpx-vp9',
+    '-pix_fmt', 'yuva420p',
+    './data/output.webm',
+  ]);
+  ffmpeg.stderr.on('data', (data) => {
+    console.error(`ffmpeg: ${data}`);
   });
+  ffmpeg.on('close', (code) => {
+    console.log(`FFmpeg exited with code ${code}`);
+  });
+  for (let i = 0; i < totalFrames; i++) {
+    //anim.render();
+    anim.goToAndStop(i,true);
+    const buffer = canvas.toBuffer('image/png');
+    ffmpeg.stdin.write(buffer);
+    if (i==0) fs.writeFileSync('./data/frame0.png', buffer);
+  }
+  ffmpeg.stdin.end();
 })();
