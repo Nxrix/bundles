@@ -29,11 +29,9 @@ fs.mkdirSync(outputDir, { recursive: true });
     animationData,
   });
 
-  anim.on('DOMLoaded', async () => {
+  (async () => {
     const totalFrames = anim.totalFrames;
     const fps = 30;
-
-    // Spawn FFmpeg to receive frames via pipe
     const ffmpeg = spawn('ffmpeg', [
       '-y',
       '-f', 'image2pipe',
@@ -43,22 +41,17 @@ fs.mkdirSync(outputDir, { recursive: true });
       '-pix_fmt', 'yuva420p',
       path.join(outputDir, 'output.webm'),
     ]);
-
     ffmpeg.stderr.on('data', (data) => {
       console.error(`ffmpeg: ${data}`);
     });
-
     ffmpeg.on('close', (code) => {
       console.log(`FFmpeg exited with code ${code}`);
     });
-
-    // Render and write each frame
     for (let i = 0; i < totalFrames; i++) {
-      anim.goToAndStop(i, true); // Render this frame
+      anim.goToAndStop(i,true);
       const buffer = canvas.toBuffer('image/png');
-      ffmpeg.stdin.write(buffer); // Send to FFmpeg
+      ffmpeg.stdin.write(buffer);
     }
-
     ffmpeg.stdin.end();
   });
 })();
