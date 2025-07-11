@@ -57,7 +57,7 @@ const fs = require('fs');
 
 async function main() {
   let converted = await converter({
-    file: Buffer.from(await(await fetch("https://gifts.coffin.meme/bundles/525878182.json")).arrayBuffer())//await fs.readFileSync('lottie.json'),
+    file: Buffer.from(await(await fetch("https://gifts.coffin.meme/bundles/525878182.json")).arrayBuffer()),//await fs.readFileSync('lottie.json'),
     //filename: 'hi.json',//optional
     format: "webm",
     width: 256,
