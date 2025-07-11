@@ -1,47 +1,64 @@
-const lottie = require('lottie-nodejs');
-const { Canvas, Image } = require('canvas');
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
+const fetch = require('node-fetch');
 const { spawn } = require('child_process');
+const { Canvas, Image } = require('canvas');
+const lottie = require('lottie-nodejs');
 
+// Setup
 lottie.setCanvas({ Canvas, Image });
-
 const width = 512, height = 512;
 const canvas = new Canvas(width, height);
-const ctx = canvas.getContext('2d');
 
-const anim = lottie.loadAnimation({
-  container: canvas,
-  loop: false,
-  path: path.join(__dirname, './assets/data.json'),
-});
+// Ensure /data exists
+const outputDir = path.join(__dirname, 'data');
+fs.mkdirSync(outputDir, { recursive: true });
 
-fs.ensureDirSync(path.join(__dirname, 'data'));
+// Main async function
+(async () => {
+  // Fetch Lottie JSON
+  const url = 'https://gifts.coffin.meme/bundles/525878182.json';
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch Lottie JSON: ${res.statusText}`);
+  const animationData = await res.json();
 
-const ffmpeg = spawn('ffmpeg', [
-  '-y',
-  '-f', 'image2pipe',
-  '-r', '30',
-  '-i', '-',
-  '-c:v', 'libvpx-vp9',
-  '-b:v', '2M',
-  path.join(__dirname, 'data/output.webm')
-]);
+  // Load Lottie
+  const anim = lottie.loadAnimation({
+    container: canvas,
+    loop: false,
+    animationData,
+  });
 
-ffmpeg.stderr.on('data', data => {
-  console.error(`ffmpeg stderr: ${data}`);
-});
+  anim.on('DOMLoaded', async () => {
+    const totalFrames = anim.totalFrames;
+    const fps = 30;
 
-anim.addEventListener('DOMLoaded', async () => {
-  const totalFrames = Math.floor(anim.getDuration(true));
-  console.log(`Total frames: ${totalFrames}`);
+    // Spawn FFmpeg to receive frames via pipe
+    const ffmpeg = spawn('ffmpeg', [
+      '-y',
+      '-f', 'image2pipe',
+      '-framerate', `${fps}`,
+      '-i', '-',
+      '-c:v', 'libvpx-vp9',
+      '-pix_fmt', 'yuva420p',
+      path.join(outputDir, 'output.webm'),
+    ]);
 
-  for (let i = 0; i < totalFrames; i++) {
-    anim.goToAndStop(i, true);
-    const buffer = canvas.toBuffer('image/png');
-    ffmpeg.stdin.write(buffer);
-  }
+    ffmpeg.stderr.on('data', (data) => {
+      console.error(`ffmpeg: ${data}`);
+    });
 
-  ffmpeg.stdin.end();
-  console.log('Rendering complete. Video saved to /data/output.webm');
-});
+    ffmpeg.on('close', (code) => {
+      console.log(`FFmpeg exited with code ${code}`);
+    });
+
+    // Render and write each frame
+    for (let i = 0; i < totalFrames; i++) {
+      anim.goToAndStop(i, true); // Render this frame
+      const buffer = canvas.toBuffer('image/png');
+      ffmpeg.stdin.write(buffer); // Send to FFmpeg
+    }
+
+    ffmpeg.stdin.end();
+  });
+})();
