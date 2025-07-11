@@ -71,14 +71,15 @@ main()
 const fs = require("fs");
 //const fetch = require("node-fetch");
 
-function optimizeLottie(obj,precision = 2) {
-  const keysToRemove = new Set(['nm','id','mn','cl','ddd']);
-  function roundNumber(num) {
+function optimizeLottie(obj, precision = 2) {
+  const keysToRemove = new Set(['nm', 'id', 'mn', 'cl', 'ddd']);
+  function roundSmart(num) {
     if (typeof num !== 'number') return num;
-    if (num === 0) return 0;
-    const digits = Math.floor(Math.log10(Math.abs(num)));
+    if (Math.abs(num) < 1e-8) return 0;
+    const fixed = Number(num.toPrecision(15)); 
+    const digits = Math.floor(Math.log10(Math.abs(fixed)));
     const scale = Math.pow(10, digits - precision + 1);
-    return Math.round(num / scale) * scale;
+    return Math.round(fixed / scale) * scale;
   }
   function deepClean(value) {
     if (Array.isArray(value)) {
@@ -97,10 +98,11 @@ function optimizeLottie(obj,precision = 2) {
       }
       return newObj;
     } else if (typeof value === 'number') {
-      return roundNumber(value);
+      return roundSmart(value);
     }
     return value;
   }
+
   return deepClean(obj);
 }
 (async()=>{
