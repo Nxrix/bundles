@@ -17,9 +17,8 @@ fs.mkdirSync("./data", { recursive: true });
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch Lottie JSON: ${res.statusText}`);
   const animationData = await res.json();
-  fs.writeFileSync("./data/lottie.json",JSON.stringify(animationData))
+  //fs.writeFileSync("./data/lottie.json",JSON.stringify(animationData))
 
-  // Load Lottie
   const anim = lottie.loadAnimation({
     container: canvas,
     loop: false,
@@ -28,8 +27,9 @@ fs.mkdirSync("./data", { recursive: true });
 
   (async () => {
     const totalFrames = anim.totalFrames;
+    console.log(totalFrames);
     const fps = 30;
-    const ffmpeg = spawn("ffmpeg", [
+    const ffmpeg = spawn("ffmpeg",[
       '-y',
       '-f', 'image2pipe',
       '-framerate', `${fps}`,
@@ -45,10 +45,11 @@ fs.mkdirSync("./data", { recursive: true });
       console.log(`FFmpeg exited with code ${code}`);
     });
     for (let i = 0; i < totalFrames; i++) {
-      if (i==0) fs.writeFileSync('./data/frame0.png', buffer);
-      anim.goToAndStop(i,true);
+      anim.render();
+      //anim.goToAndStop(i,true);
       const buffer = canvas.toBuffer('image/png');
       ffmpeg.stdin.write(buffer);
+      if (i==0) fs.writeFileSync('./data/frame0.png', buffer);
     }
     ffmpeg.stdin.end();
   });
