@@ -17,7 +17,7 @@ fs.mkdirSync("./data", { recursive: true });
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch Lottie JSON: ${res.statusText}`);
   const animationData = await res.json();
-  fs.writeFileSync("./data/lottie.json",animationData)
+  fs.writeFileSync("./data/lottie.json",animationData,"utf8")
 
   // Load Lottie
   const anim = lottie.loadAnimation({
