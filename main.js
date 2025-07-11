@@ -5,7 +5,6 @@ const { spawn } = require('child_process');
 const { Canvas, Image } = require('canvas');
 const lottie = require('lottie-nodejs');
 
-// Setup
 lottie.setCanvas({ Canvas, Image });
 const width = 512, height = 512;
 const canvas = new Canvas(width, height);
